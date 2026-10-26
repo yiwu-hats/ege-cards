@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Карточки ЕГЭ</title><style>
+:root{--bg:#0b0d14;--cd:rgba(255,255,255,.055);--bd:rgba(255,255,255,.09);--tx:#eef1f8;--mu:#8e98ad;--pr:linear-gradient(135deg,#4facfe,#7b61ff);--bad:#ff5d6c;--ok:#34c47c;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{background:radial-gradient(900px 500px at 85% -5%,#2a1b5e 0,transparent 60%),radial-gradient(700px 500px at -10% 30%,#10305c 0,transparent 60%),var(--bg);background-attachment:fixed;color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:16px 16px 100px}h1{font-size:25px;margin:8px 0 14px}h2{font-size:17px;margin:18px 0 8px;color:var(--mu);font-weight:500}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:20px;padding:15px;margin-bottom:10px;backdrop-filter:blur(8px)}
+.hero{background:linear-gradient(135deg,#1d3a7a,#4b2a96 60%,#7b3fb8);border:0;padding:20px;box-shadow:0 10px 30px rgba(80,60,200,.25)}
+.r{display:flex;gap:8px;align-items:center}.sp{justify-content:space-between}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mu{color:var(--mu);font-size:13px}
+button,.b{font:inherit;border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:14px;padding:11px 15px;cursor:pointer}
+button.p{background:var(--pr);border:0;font-weight:600;box-shadow:0 6px 18px rgba(100,110,255,.3)}button.w{width:100%;margin-top:8px}button.d{color:var(--bad)}
+.fab{position:fixed;right:max(18px,calc(50% - 262px));bottom:calc(22px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:20px;font-size:30px;padding:0;z-index:5}
+textarea,input[type=text]{width:100%;font:inherit;background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:11px;margin:4px 0 10px}
+.pb{display:flex;gap:3px;height:7px;margin-top:10px}.pb i{border-radius:4px;display:block}.pb .a{background:#4facfe}.pb .l{background:#a5d8ff}.pb .n{background:rgba(255,255,255,.12)}
+.ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex:none}
+.bars{display:flex;gap:6px;align-items:flex-end;height:80px}.bars div{flex:1;text-align:center;font-size:11px;color:var(--mu)}.bars i{display:block;background:var(--pr);border-radius:5px 5px 0 0;min-height:2px;margin-bottom:2px}
+.big{font-size:27px;text-align:center;padding:34px 12px;min-height:200px;white-space:pre-wrap;background:linear-gradient(160deg,rgba(79,172,254,.12),rgba(123,97,255,.12))}.big img,.pv{max-width:100%;border-radius:12px;margin-top:12px}
+.gr{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.gr button{padding:11px 2px;font-size:14px}.gr small{display:block;color:var(--mu);font-size:11px}
+.gr button:nth-child(1){background:rgba(255,93,108,.18)}.gr button:nth-child(2){background:rgba(255,170,60,.16)}.gr button:nth-child(3){background:rgba(79,172,254,.18)}.gr button:nth-child(4){background:rgba(52,196,124,.18)}
+.o{display:block;width:100%;text-align:left;margin-bottom:8px}.o.ok{background:var(--ok);border:0}.o.no{background:var(--bad);border:0}
+.ov{position:fixed;inset:0;background:var(--bg);z-index:9;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ov canvas{flex:1;min-height:0;width:100%;touch-action:none;background:#fff}.tb{display:flex;gap:8px;padding:10px;align-items:center}.tb input[type=range]{flex:1}
+</style></head><body><div id="app"></div><script>
+const $=s=>document.querySelector(s),A=$('#app');
+let S;try{S=JSON.parse(localStorage.getItem('egeCards')||'null')}catch(e){}
+S=S||{};S.decks=S.decks||[];S.cards=S.cards||[];S.log=S.log||{};S.folders=S.folders||[];
+const save=()=>{try{localStorage.setItem('egeCards',JSON.stringify(S))}catch(e){mdl('Память заполнена',null,null)}};
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dk=(t=Date.now())=>{const d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const uid=()=>Math.random().toString(36).slice(2,9),sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const fr=c=>c.rev?c.back:c.front,bk=c=>c.rev?c.front:c.back;
+function cardsOf(s){if(s=='all')return S.cards;if(s[0]=='f'&&s[1]==':'){const ids=S.decks.filter(d=>d.folder==s.slice(2)).map(d=>d.id);return S.cards.filter(c=>ids.includes(c.deck))}return S.cards.filter(c=>c.deck==s)}
+const due=s=>cardsOf(s).filter(c=>c.due<=Date.now());
+function streak(){let n=0,t=Date.now();if(!(S.log[dk(t)]||{}).n)t-=864e5;while((S.log[dk(t)]||{}).n>0){n++;t-=864e5}return n}
+function bar(cs){const m=cs.filter(c=>c.ivl>=21).length,l=cs.filter(c=>c.seen&&c.ivl<21).length,n=cs.length-m-l,w=cs.length||1;return`<div class="pb"><i class="a" style="flex:${m||0};min-width:${m?6:0}px"></i><i class="l" style="flex:${l||0};min-width:${l?6:0}px"></i><i class="n" style="flex:${n||(cs.length?0:1)}"></i></div>`}
+const fmt=v=>v==0?'<10м':v<30?v+'д':Math.round(v/30)+'мес';
+function nx(c,q){let i=c.ivl,e=c.ease,r=c.reps;if(q==0)return{ivl:0,ease:Math.max(1.3,e-.2),reps:0,due:Date.now()+6e5};
+let v=q==1?(r?Math.max(1,Math.round(i*1.2)):1):q==2?(r==0?2:r==1?4:Math.round(i*e)):(r==0?5:Math.round(Math.max(i,1)*e*1.3));
+e=q==1?Math.max(1.3,e-.15):q==3?e+.15:e;return{ivl:v,ease:e,reps:r+1,due:Date.now()+v*864e5}}
+function grade(c,q){Object.assign(c,nx(c,q));c.seen=1;const l=S.log[dk()]=S.log[dk()]||{n:0,ok:0};l.n++;if(q>=2)l.ok++;save()}
+function mdl(t,v,cb){const o=document.createElement('div');o.className='ov';o.style.cssText='background:rgba(0,0,0,.65);justify-content:center;padding:20px';o.innerHTML='<div class="c" style="background:#171c30"><p style="margin-top:0">'+esc(t)+'</p>'+(v==null?'':'<input type="text" id="mi" value="'+esc(v)+'">')+'<div class="r">'+(cb?'<button id="mx" style="flex:1">Отмена</button>':'')+'<button class="p" id="mo" style="flex:1">OK</button></div></div>';document.body.appendChild(o);const i=o.querySelector('#mi');if(i)i.focus();if(cb)o.querySelector('#mx').onclick=()=>o.remove();o.querySelector('#mo').onclick=()=>{const r=i?i.value.trim():true;o.remove();if(cb&&r)cb(r)}}
+let V='home',D=null,PV=null,ed=null,Q=[],shown=false,sc=0,tot=0,pick=null,Sc='all';
+function go(v,d){V=v;if(d!==undefined)D=d;render()}
+function render(){window.scrollTo(0,0);({home,folder,deck,edit,study,test,imp,exp,stats})[V]()}
+const COL=['#7a1f2e','#0f4c75','#2d5a27','#5b3a8c','#8a5a14'],ICO=['#ff6b81','#4facfe','#5fd68a','#b794ff','#ffb74d'];
+function drow(d,i){const cs=S.cards.filter(c=>c.deck==d.id);return`<div class="c" onclick="go('deck','${d.id}')"><b>${esc(d.name)}</b><div class="mu">🕒 К изучению: ${due(d.id).length} · всего ${cs.length}</div>${bar(cs)}</div>`}
+function frow(f,i){const n=S.decks.filter(d=>d.folder==f.id).length;return`<div class="c r" onclick="go('folder','${f.id}')"><div class="ic" style="background:${COL[i%5]};color:${ICO[i%5]}">📁</div><div><b>${esc(f.name)}</b><div class="mu">Колод: ${n}</div></div></div>`}
+function home(){const dn=due('all').length;
+A.innerHTML=`<div class="r sp"><b style="font-size:20px">🔥 ${streak()}</b><div class="r"><button onclick="addFolder()">📁+</button><button onclick="go('stats')">📊</button></div></div><h1>Привет! 👋</h1>
+<div class="c hero"><div style="font-size:21px;font-weight:700">Все колоды</div><div style="opacity:.8;margin-top:4px">Выучено: ${S.cards.filter(c=>c.ivl>=21).length} из ${S.cards.length}</div>${bar(S.cards)}<button class="p w" style="margin-top:16px;padding:14px;font-size:17px" onclick="startStudy('all')">Изучить ${dn} карточек</button></div>
+<h2>Мои колоды</h2>${S.folders.map(frow).join('')}${S.decks.filter(d=>!d.folder).map(drow).join('')||(S.folders.length?'':'<p class="mu">Пока пусто. Нажми «+» и создай колоду, например «Даты: Древняя Русь».</p>')}
+<button class="p fab" onclick="addDeck()">+</button>`}
+function addFolder(){mdl('Название папки','',n=>{S.folders.push({id:uid(),name:n});save();render()})}
+function addDeck(){mdl('Название колоды','',n=>{S.decks.push({id:uid(),name:n,folder:V=='folder'?D:''});save();render()})}
+function folder(){const f=S.folders.find(x=>x.id==D);A.innerHTML=`<button onclick="go('home')">←</button><h1>📁 ${esc(f.name)}</h1><button class="p w" onclick="startStudy('f:${f.id}')">Изучить ${due('f:'+f.id).length} карточек</button><h2>Колоды</h2>${S.decks.filter(d=>d.folder==f.id).map(drow).join('')||'<p class="mu">Нажми «+», чтобы добавить колоду.</p>'}<button class="d w" onclick="delFolder()">Удалить папку (колоды останутся)</button><button class="p fab" onclick="addDeck()">+</button>`}
+function delFolder(){mdl('Удалить папку?',null,()=>{S.decks.forEach(d=>{if(d.folder==D)d.folder=''});S.folders=S.folders.filter(x=>x.id!=D);save();go('home')})}
+function deck(){const d=S.decks.find(x=>x.id==D),cs=S.cards.filter(c=>c.deck==D),m=cs.filter(c=>c.ivl>=21).length,l=cs.filter(c=>c.seen&&c.ivl<21).length;
+A.innerHTML=`<div class="r sp"><button onclick="${d.folder?`go('folder','${d.folder}')`:`go('home')`}">←</button><button onclick="ren()">✏️</button></div><h1>${esc(d.name)}</h1>
+<div class="c" style="text-align:center"><div style="font-size:54px;font-weight:800">${due(D).length}</div><div class="mu">карточек на сегодня</div><div class="g" style="margin:14px 0"><div><b>${cs.length-m-l}</b><div class="mu">Не изучен</div></div><div><b>${l}</b><div class="mu">Обучение</div></div><div><b>${m}</b><div class="mu">Освоен</div></div></div><button class="p w" onclick="startStudy('${D}')">Учебные карточки</button><button class="w" onclick="startTest()">Тест</button></div>
+<div class="r"><button style="flex:1" onclick="newCard()">+ Карточка</button><button style="flex:1" onclick="go('imp')">Импорт</button><button style="flex:1" onclick="go('exp')">Экспорт</button></div>
+<h2>Карточки в колоде (${cs.length})</h2>${cs.slice().reverse().map(c=>`<div class="c" onclick="editCard('${c.id}')"><div class="mu">${c.rev?'⇄ Перевернутый':'Обычный'}</div><div style="margin-top:6px">${esc(c.front)}</div><div class="mu">${esc(c.back)}</div></div>`).join('')}
+<button class="d w" onclick="delDeck()">Удалить колоду</button>`}
+function ren(){const d=S.decks.find(x=>x.id==D);mdl('Название колоды',d.name,n=>{d.name=n;save();render()})}
+function delDeck(){mdl('Удалить колоду со всеми карточками?',null,()=>{S.cards=S.cards.filter(c=>c.deck!=D);S.decks=S.decks.filter(x=>x.id!=D);save();go('home')})}
+function newCard(){ed={deck:D,front:'',back:'',img:'',rev:0};go('edit')}
+function editCard(id){ed={...S.cards.find(c=>c.id==id)};go('edit')}
+function edit(){A.innerHTML=`<button onclick="go('deck')">←</button><h1>${ed.id?'Карточка':'Новая карточка'}</h1>
+<label class="mu">Лицевая сторона (событие)</label><textarea rows=3 oninput="ed.front=this.value">${esc(ed.front)}</textarea>
+<label class="mu">Обратная сторона (дата / ответ)</label><textarea rows=3 oninput="ed.back=this.value">${esc(ed.back)}</textarea>
+<label class="r" style="margin-bottom:12px"><input type="checkbox" ${ed.rev?'checked':''} onchange="ed.rev=this.checked?1:0"> Перевернутая (сначала показать ответ)</label>
+<div class="r"><label class="b">🖼 Фото<input type="file" accept="image/*" hidden onchange="pickImg(this.files[0])"></label><button onclick="draw()">✏️ Рисовать</button>${ed.img?'<button class="d" onclick="ed.img=\'\';render()">Убрать</button>':''}</div>
+${ed.img?`<img class="pv" src="${ed.img}">`:''}<button class="p w" onclick="saveCard()">Сохранить</button>${ed.id?'<button class="d w" onclick="delCard()">Удалить</button>':''}`}
+function pickImg(f){if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);ed.img=c.toDataURL('image/jpeg',.8);render()};im.src=r.result};r.readAsDataURL(f)}
+function saveCard(){if(!ed.front.trim()||!ed.back.trim())return mdl('Заполни обе стороны',null,null);if(ed.id)Object.assign(S.cards.find(c=>c.id==ed.id),ed);else S.cards.push({...ed,id:uid(),due:0,ivl:0,ease:2.5,reps:0});save();go('deck')}
+function delCard(){mdl('Удалить карточку?',null,()=>{S.cards=S.cards.filter(c=>c.id!=ed.id);save();go('deck')})}
+function draw(){const o=document.createElement('div');o.className='ov';o.innerHTML='<canvas id="cv"></canvas><div class="tb"><input type="color" id="cl" value="#1e88e5"><input type="range" id="th" min="2" max="24" value="5"><button id="un">↶</button><button id="cc">Очистить</button><button class="p" id="ok">Готово</button></div>';document.body.appendChild(o);
+const c=$('#cv'),r=c.getBoundingClientRect();c.width=r.width*2;c.height=r.height*2;const x=c.getContext('2d');x.lineCap=x.lineJoin='round';
+const clr=()=>{x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)};clr();let H=[],on=0;
+if(ed.img){const im=new Image();im.onload=()=>{const k=Math.min(c.width/im.width,c.height/im.height);x.drawImage(im,0,0,im.width*k,im.height*k)};im.src=ed.img}
+const p=e=>{const b=c.getBoundingClientRect();return[(e.clientX-b.left)*2,(e.clientY-b.top)*2]};
+c.onpointerdown=e=>{H.push(x.getImageData(0,0,c.width,c.height));on=1;const[a,b]=p(e);x.strokeStyle=$('#cl').value;x.lineWidth=$('#th').value*2;x.beginPath();x.moveTo(a,b);x.lineTo(a+.1,b);x.stroke()};
+c.onpointermove=e=>{if(!on)return;const[a,b]=p(e);x.lineTo(a,b);x.stroke()};c.onpointerup=c.onpointerleave=()=>on=0;
+$('#un').onclick=()=>{const h=H.pop();if(h)x.putImageData(h,0,0)};$('#cc').onclick=()=>{H.push(x.getImageData(0,0,c.width,c.height));clr()};
+$('#ok').onclick=()=>{const t=document.createElement('canvas'),k=Math.min(1,700/c.width);t.width=c.width*k;t.height=c.height*k;t.getContext('2d').drawImage(c,0,0,t.width,t.height);ed.img=t.toDataURL('image/jpeg',.85);o.remove();render()}}
+function imp(){A.innerHTML=`<button onclick="go('deck')">←</button><h1>Импорт карточек</h1><p class="mu">Одна карточка на строку: вопрос и ответ через <b>;</b> или Tab, « — », «|». Например:<br>Убийство Святослава печенегами; 972 г.</p>
+<textarea id="it" rows="9"></textarea><label class="b" style="display:block;text-align:center;margin-bottom:12px">📄 Загрузить файл (txt, csv)<input type="file" accept=".txt,.csv,.tsv,text/*" hidden onchange="rf(this.files[0])"></label>
+<label class="r"><input type="checkbox" id="ir"> Перевернутые (сначала ответ)</label><label class="r" style="margin:8px 0"><input type="checkbox" id="isw"> Поменять стороны местами</label><button class="p w" onclick="if(!$('#it').value.trim())return mdl('Сначала вставь текст или загрузи файл',null,null);doImp()">Импортировать</button>`}
+function rf(f){if(!f)return;const r=new FileReader();r.onload=()=>{$('#it').value=r.result};r.readAsText(f)}
+function doImp(){let n=0;const sw=$('#isw').checked,rv=$('#ir').checked?1:0;$('#it').value.split(/\r?\n/).forEach(l=>{l=l.trim();if(!l)return;for(const s of ['\t',';',' — ',' – ','|',' - ']){const i=l.indexOf(s);if(i>0){let a=l.slice(0,i).trim().replace(/^"|"$/g,''),b=l.slice(i+s.length).trim().replace(/^"|"$/g,'');if(sw)[a,b]=[b,a];if(a&&b){S.cards.push({id:uid(),deck:D,front:a,back:b,img:'',rev:rv,due:0,ivl:0,ease:2.5,reps:0});n++}break}}});save();go('deck');mdl('Добавлено карточек: '+n,null,null)}
+function exp(){const t=S.cards.filter(c=>c.deck==D).map(c=>c.front+'; '+c.back).join('\n');A.innerHTML=`<button onclick="go('deck')">←</button><h1>Экспорт</h1><textarea id="et" rows="12" readonly>${esc(t)}</textarea><button class="p w" onclick="$('#et').select();document.execCommand('copy');this.textContent='Скопировано ✓'">Скопировать</button>`}
+function stats(){const days=[...Array(7)].map((_,i)=>{const x=Date.now()-(6-i)*864e5;return[new Date(x).toLocaleDateString('ru',{weekday:'short'}),(S.log[dk(x)]||{n:0}).n]}),mx=Math.max(1,...days.map(d=>d[1])),w=Object.values(S.log).reduce((a,b)=>a+b.n,0),ok=Object.values(S.log).reduce((a,b)=>a+b.ok,0);
+A.innerHTML=`<button onclick="go('home')">←</button><h1>Статистика</h1><div class="c g"><div><b style="font-size:24px">🔥 ${streak()}</b><div class="mu">серия дней</div></div><div><b style="font-size:24px">${w}</b><div class="mu">всего повторов</div></div><div><b style="font-size:24px">${w?Math.round(ok/w*100):0}%</b><div class="mu">верно</div></div></div>
+<div class="c"><div class="mu">За неделю</div><div class="bars">${days.map(d=>`<div><i style="height:${d[1]/mx*55}px"></i>${d[1]}<br>${d[0]}</div>`).join('')}</div></div>
+<h2>Резервная копия</h2><button class="w" onclick="mdl('Скопируй весь текст из поля и сохрани в заметки',JSON.stringify(S),()=>{})">Скопировать копию всех данных</button><button class="w" onclick="rest()">Восстановить из копии</button>`}
+function rest(){mdl('Вставь скопированную копию','',t=>{try{const o=JSON.parse(t);if(!o.cards)throw 0;S=o;S.folders=S.folders||[];save();go('home')}catch(e){mdl('Не получилось прочитать копию',null,null)}})}
+function startStudy(s){Sc=s;PV={v:V,d:D};Q=sh(due(s));if(!Q.length)return mdl('Пока нечего повторять 🎉',null,null);shown=false;tot=Q.length;go('study')}
+function study(){if(!Q.length){A.innerHTML=`<h1>Готово! 🎉</h1><div class="c">Повторено карточек: ${tot}</div><button class="p w" onclick="go(PV.v,PV.d)">Назад</button>`;return}
+const c=Q[0];A.innerHTML=`<div class="r sp"><button onclick="go(PV.v,PV.d)">✕</button><span class="mu">Осталось ${Q.length}</span></div><div class="c big" style="margin-top:12px">${esc(fr(c))}${shown?`<hr style="border:0;border-top:1px solid var(--bd);margin:20px 0"><b>${esc(bk(c))}</b>${c.img?`<img src="${c.img}">`:''}`:''}</div>
+${shown?`<div class="gr">${['Again','Hard','Good','Easy'].map((n,i)=>`<button onclick="ans(${i})">${n}<small>${fmt(nx(c,i).ivl)}</small></button>`).join('')}</div>`:'<button class="p w" onclick="shown=true;render()">Показать ответ</button>'}`}
+function ans(q){const c=Q.shift();grade(c,q);if(q==0)Q.push(c);shown=false;render()}
+function startTest(){const cs=S.cards.filter(c=>c.deck==D);if(cs.length<2)return mdl('Для теста нужно минимум 2 карточки',null,null);PV={v:V,d:D};Q=sh(cs).slice(0,10);sc=0;tot=Q.length;pick=null;go('test')}
+function test(){if(!Q.length){A.innerHTML=`<h1>Тест окончен</h1><div class="c big">${sc} из ${tot}</div><button class="p w" onclick="go(PV.v,PV.d)">Назад</button>`;return}
+const c=Q[0];if(!c.opts)c.opts=sh([bk(c),...sh([...new Set(S.cards.filter(x=>x.deck==c.deck&&bk(x)!=bk(c)).map(bk))]).slice(0,3)]);
+A.innerHTML=`<div class="r sp"><button onclick="go(PV.v,PV.d)">✕</button><span class="mu">Осталось ${Q.length}</span></div><div class="c big" style="margin-top:12px">${esc(fr(c))}</div>${c.opts.map((o,i)=>`<button class="o ${pick===null?'':o==bk(c)?'ok':i==pick?'no':''}" ${pick===null?`onclick="tp(${i})"`:''}>${esc(o)}</button>`).join('')}${pick!==null?'<button class="p w" onclick="tn()">Дальше</button>':''}`}
+function tp(i){const c=Q[0];pick=i;const ok=c.opts[i]==bk(c);if(ok)sc++;grade(c,ok?2:0);render()}
+function tn(){const c=Q.shift();delete c.opts;pick=null;render()}
+window.onerror=(m)=>{try{mdl('Ошибка: '+m,null,null)}catch(e){}};
+render();
+</script></body></html>
